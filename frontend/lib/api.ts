@@ -151,6 +151,39 @@ export async function createAsset(payload: AssetCreatePayload) {
   });
 }
 
+export async function logout() {
+  return apiFetch<{ message: string }>("/auth/logout", {
+    method: "POST",
+  });
+}
+
+export type Kpis = {
+  assets_available: number;
+  assets_allocated: number;
+  maintenance_today: number;
+  active_bookings: number;
+  pending_transfers: number;
+  upcoming_returns: number;
+};
+
+export type OverdueAllocation = {
+  id: number;
+  asset_id: number;
+  asset_tag: string;
+  asset_name: string;
+  allocated_to_type: string;
+  target_name: string;
+  expected_return_date: string;
+};
+
+export async function getDashboardKpis() {
+  return apiFetch<Kpis>("/api/analytics/kpi");
+}
+
+export async function getOverdueAllocations() {
+  return apiFetch<OverdueAllocation[]>("/api/analytics/overdue");
+}
+
 export function formatStatus(status: string) {
   return status
     .split("_")
@@ -298,101 +331,102 @@ export async function createTransferRequest(payload: TransferCreatePayload) {
   });
 }
 
-export type Resource = {
-  id: number;
-  name: string;
-  type: string;
-  asset_id: number | null;
-  description: string | null;
-  status: string;
+// ─── Dashboard / Analytics ───────────────────────────────────────────────────
+
+export type DashboardKPIs = {
+  assets_available: number;
+  assets_allocated: number;
+  maintenance_today: number;
+  active_bookings: number;
+  pending_transfers: number;
+  upcoming_returns: number;
 };
 
-export type Booking = {
+export type ActivityLog = {
   id: number;
-  resource_id: number;
-  resource_name: string;
-  booked_by_employee_id: number;
-  booked_by_name: string;
-  start_time: string;
-  end_time: string;
-  status: string;
+  employee_id: number | null;
+  employee_name: string;
+  action: string;
+  details: Record<string, unknown> | null;
   created_at: string;
 };
 
-export type BookingCreatePayload = {
-  resource_id: number;
-  start_time: string;
-  end_time: string;
+export async function getDashboardKPIs() {
+  return apiFetch<DashboardKPIs>("/api/analytics/kpi");
+}
+
+export async function getActivityLogs() {
+  return apiFetch<ActivityLog[]>("/api/activity-logs");
+}
+
+// ─── Audit Cycles ─────────────────────────────────────────────────────────────
+
+export type AuditCycle = {
+  id: number;
+  name: string;
+  scope_type: string;
+  scope_department_id: number | null;
+  scope_department_name: string | null;
+  scope_location: string | null;
+  start_date: string;
+  end_date: string;
+  status: string;
+  auditors: Array<{ id: number; name: string }>;
+  created_at: string;
 };
 
-export type MaintenanceRequest = {
+export type AuditItem = {
   id: number;
+  audit_cycle_id: number;
   asset_id: number;
   asset_tag: string;
   asset_name: string;
-  raised_by_employee_id: number;
-  raised_by_name: string;
-  description: string;
-  priority: string;
-  photo_url: string | null;
-  status: string;
-  technician_name: string | null;
-  actioned_by_id: number | null;
-  resolution_notes: string | null;
-  created_at: string;
+  verification_status: string;
+  notes: string | null;
+  verified_by_employee_id: number | null;
+  verified_by_name: string | null;
+  verified_at: string | null;
 };
 
-export type MaintenanceCreatePayload = {
-  asset_id: number;
-  description: string;
-  priority: string;
-  photo_url?: string;
+export type AuditCycleCreatePayload = {
+  name: string;
+  scope_type: "department" | "location" | "all";
+  scope_department_id?: number;
+  scope_location?: string;
+  start_date: string;
+  end_date: string;
+  auditor_ids: number[];
 };
 
-export type MaintenanceStatusUpdatePayload = {
-  status: string;
-  technician_name?: string;
-  resolution_notes?: string;
-};
-
-export async function getResources() {
-  return apiFetch<Resource[]>("/api/resources");
+export async function getAuditCycles() {
+  return apiFetch<AuditCycle[]>("/api/audits/cycles");
 }
 
-export async function getBookings(resourceId?: number) {
-  const suffix = resourceId != null ? `?resource_id=${resourceId}` : "";
-  return apiFetch<Booking[]>(`/api/bookings${suffix}`);
-}
-
-export async function createBooking(payload: BookingCreatePayload) {
-  return apiFetch<Booking>("/api/bookings", {
+export async function createAuditCycle(payload: AuditCycleCreatePayload) {
+  return apiFetch<AuditCycle>("/api/audits/cycles", {
     method: "POST",
     body: JSON.stringify(payload),
   });
 }
 
-export async function cancelBooking(id: number) {
-  return apiFetch<Booking>(`/api/bookings/${id}/cancel`, {
+export async function getAuditCycleItems(cycleId: number) {
+  return apiFetch<AuditItem[]>(`/api/audits/cycles/${cycleId}/items`);
+}
+
+export async function updateAuditItem(
+  itemId: number,
+  verification_status: "verified" | "missing" | "damaged",
+  notes?: string
+) {
+  return apiFetch<AuditItem>(`/api/audits/items/${itemId}`, {
     method: "PUT",
+    body: JSON.stringify({ verification_status, notes }),
   });
 }
 
-export async function getMaintenanceRequests() {
-  return apiFetch<MaintenanceRequest[]>("/api/maintenance");
-}
-
-export async function createMaintenanceRequest(payload: MaintenanceCreatePayload) {
-  return apiFetch<MaintenanceRequest>("/api/maintenance", {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
-}
-
-export async function updateMaintenanceStatus(id: number, payload: MaintenanceStatusUpdatePayload) {
-  return apiFetch<MaintenanceRequest>(`/api/maintenance/${id}/status`, {
+export async function closeAuditCycle(cycleId: number) {
+  return apiFetch<AuditCycle>(`/api/audits/cycles/${cycleId}/close`, {
     method: "PUT",
-    body: JSON.stringify(payload),
+    body: JSON.stringify({}),
   });
 }
-
-
