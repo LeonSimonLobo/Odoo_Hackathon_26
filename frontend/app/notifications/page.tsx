@@ -76,8 +76,8 @@ export default function NotificationsPage() {
     <main className="flex min-h-screen bg-[#0f1110] text-stone-100 selection:bg-emerald-400/30 selection:text-emerald-300">
       <Sidebar currentItem="Notifications" />
 
-        <div className="flex min-w-0 flex-1 flex-col">
-          <header className="border-b border-stone-200/10 px-5 py-5 sm:px-6 lg:px-7">
+      <section className="flex-1 px-8 py-8 lg:px-12 lg:py-10 flex flex-col overflow-y-auto">
+        <header className="border-b border-stone-200/10 pb-5">
             <h1 className="text-3xl font-semibold tracking-tight text-stone-50">Notifications &amp; Activity Logs</h1>
             <p className="mt-1 text-sm text-stone-400">
               Stay updated on asset assignments, transfer requests, booking approvals, and system activities.
