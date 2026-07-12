@@ -8,6 +8,8 @@ import {
   getOverdueAllocations,
   getMe,
   login,
+  forgotPassword,
+  resetPassword,
   type User,
   type Kpis,
   type OverdueAllocation,
@@ -34,6 +36,72 @@ export default function Home() {
   const [overdue, setOverdue] = useState<OverdueAllocation[]>([]);
   const [loadingDashboard, setLoadingDashboard] = useState(false);
   const [dashboardError, setDashboardError] = useState<string | null>(null);
+
+  // Forgot/Reset Password states
+  const [loginView, setLoginView] = useState<"signin" | "forgot" | "reset">("signin");
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotSuccess, setForgotSuccess] = useState("");
+  const [forgotError, setForgotError] = useState("");
+  const [forgotSubmitting, setForgotSubmitting] = useState(false);
+
+  const [resetToken, setResetToken] = useState("");
+  const [resetNewPassword, setResetNewPassword] = useState("");
+  const [resetConfirmPassword, setResetConfirmPassword] = useState("");
+  const [resetSuccess, setResetSuccess] = useState("");
+  const [resetError, setResetError] = useState("");
+  const [resetSubmitting, setResetSubmitting] = useState(false);
+
+  async function handleForgotPassword(e: FormEvent) {
+    e.preventDefault();
+    setForgotSubmitting(true);
+    setForgotError("");
+    setForgotSuccess("");
+    try {
+      const res = await forgotPassword(forgotEmail);
+      setForgotSuccess(res.message || "A reset link was generated! Check the backend console output.");
+      setTimeout(() => {
+        setLoginView("reset");
+      }, 2500);
+    } catch (err: unknown) {
+      const error = err as Error;
+      setForgotError(error.message || "Failed to submit request.");
+    } finally {
+      setForgotSubmitting(false);
+    }
+  }
+
+  async function handleResetPassword(e: FormEvent) {
+    e.preventDefault();
+    if (resetNewPassword !== resetConfirmPassword) {
+      setResetError("Passwords do not match");
+      return;
+    }
+    if (resetNewPassword.length < 6) {
+      setResetError("Password must be at least 6 characters");
+      return;
+    }
+    setResetSubmitting(true);
+    setResetError("");
+    setResetSuccess("");
+    try {
+      await resetPassword(resetToken, resetNewPassword);
+      setResetSuccess("Password reset successfully! Redirecting to login...");
+      setTimeout(() => {
+        setLoginView("signin");
+        setResetToken("");
+        setResetNewPassword("");
+        setResetConfirmPassword("");
+        setResetSuccess("");
+      }, 2000);
+    } catch (err: unknown) {
+      const error = err as Error;
+      setResetError(error.message || "Failed to reset password.");
+    } finally {
+      setResetSubmitting(false);
+    }
+  }
+
+
 
   const loadDashboardData = useCallback(async () => {
     setLoadingDashboard(true);
@@ -92,39 +160,166 @@ export default function Home() {
       <main className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(48,82,62,0.35),_transparent_34%),linear-gradient(180deg,_#0f1110_0%,_#111412_100%)] px-4 py-6 text-stone-100">
         <section className="w-full max-w-md rounded-[2rem] border border-stone-200/15 bg-[#141714] p-8 shadow-[0_28px_90px_rgba(0,0,0,0.45)]">
           <p className="text-sm uppercase tracking-[0.28em] text-emerald-300/80">AssetFlow</p>
-          <h1 className="mt-2 text-3xl font-semibold text-stone-50">Sign in to continue</h1>
-          <p className="mt-2 text-sm text-stone-400">
-            Asset registry requires authentication. Use a seeded account such as{" "}
-            <span className="text-stone-200">Employee: raj@assetflow.com</span> /{" "}
-            <span className="text-stone-200">Admin: alice@assetflow.com</span> /{" "}
-            <span className="text-stone-200">password123</span>.
-          </p>
+          
+          {loginView === "signin" && (
+            <>
+              <h1 className="mt-2 text-3xl font-semibold text-stone-50">Sign in to continue</h1>
+              <p className="mt-2 text-sm text-stone-400">
+                Asset registry requires authentication. Use a seeded account such as{" "}
+                <span className="text-stone-200">Employee: raj@assetflow.com</span> /{" "}
+                <span className="text-stone-200">Admin: alice@assetflow.com</span> /{" "}
+                <span className="text-stone-200">password123</span>.
+              </p>
 
-          <form onSubmit={handleLogin} className="mt-6 space-y-4">
-            <Field label="Email" error={loginError ?? undefined}>
-              <input
-                type="email"
-                value={loginEmail}
-                onChange={(event) => setLoginEmail(event.target.value)}
-                className={inputClassName()}
-              />
-            </Field>
-            <Field label="Password">
-              <input
-                type="password"
-                value={loginPassword}
-                onChange={(event) => setLoginPassword(event.target.value)}
-                className={inputClassName()}
-              />
-            </Field>
-            <button
-              type="submit"
-              disabled={loginSubmitting}
-              className="h-11 w-full rounded-2xl bg-emerald-300 px-4 text-sm font-semibold text-emerald-950 transition hover:bg-emerald-200 disabled:opacity-60"
-            >
-              {loginSubmitting ? "Signing in..." : "Sign in"}
-            </button>
-          </form>
+              <form onSubmit={handleLogin} className="mt-6 space-y-4">
+                <Field label="Email" error={loginError ?? undefined}>
+                  <input
+                    type="email"
+                    value={loginEmail}
+                    onChange={(event) => setLoginEmail(event.target.value)}
+                    className={inputClassName()}
+                  />
+                </Field>
+                <Field label="Password">
+                  <div className="space-y-1">
+                    <input
+                      type="password"
+                      value={loginPassword}
+                      onChange={(event) => setLoginPassword(event.target.value)}
+                      className={inputClassName()}
+                    />
+                    <div className="flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => setLoginView("forgot")}
+                        className="text-xs font-semibold text-emerald-400 hover:text-emerald-350 transition outline-none mt-1"
+                      >
+                        Forgot password?
+                      </button>
+                    </div>
+                  </div>
+                </Field>
+                <button
+                  type="submit"
+                  disabled={loginSubmitting}
+                  className="h-11 w-full rounded-2xl bg-emerald-300 px-4 text-sm font-semibold text-emerald-950 transition hover:bg-emerald-200 disabled:opacity-60"
+                >
+                  {loginSubmitting ? "Signing in..." : "Sign in"}
+                </button>
+              </form>
+            </>
+          )}
+
+          {loginView === "forgot" && (
+            <>
+              <h1 className="mt-2 text-3xl font-semibold text-stone-50">Recover password</h1>
+              <p className="mt-2 text-sm text-stone-400">
+                Enter your email address and we will generate a password recovery token in the system logs.
+              </p>
+
+              <form onSubmit={handleForgotPassword} className="mt-6 space-y-4">
+                <Field label="Email" error={forgotError ?? undefined}>
+                  <input
+                    type="email"
+                    required
+                    placeholder="john@assetflow.com"
+                    value={forgotEmail}
+                    onChange={(event) => setForgotEmail(event.target.value)}
+                    className={inputClassName()}
+                  />
+                </Field>
+                
+                {forgotSuccess && <p className="text-xs text-emerald-400 font-semibold">{forgotSuccess}</p>}
+
+                <button
+                  type="submit"
+                  disabled={forgotSubmitting}
+                  className="h-11 w-full rounded-2xl bg-emerald-300 px-4 text-sm font-semibold text-emerald-950 transition hover:bg-emerald-200 disabled:opacity-60"
+                >
+                  {forgotSubmitting ? "Submitting..." : "Send Reset Token"}
+                </button>
+                
+                <div className="flex flex-col gap-2 mt-4 text-center">
+                  <button
+                    type="button"
+                    onClick={() => setLoginView("reset")}
+                    className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition outline-none"
+                  >
+                    Have a reset token? Enter code
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLoginView("signin")}
+                    className="text-xs font-medium text-stone-400 hover:text-stone-300 transition outline-none"
+                  >
+                    ← Back to Sign In
+                  </button>
+                </div>
+              </form>
+            </>
+          )}
+
+          {loginView === "reset" && (
+            <>
+              <h1 className="mt-2 text-3xl font-semibold text-stone-50">Reset password</h1>
+              <p className="mt-2 text-sm text-stone-400">
+                Enter your security token and enter a secure new password.
+              </p>
+
+              <form onSubmit={handleResetPassword} className="mt-6 space-y-4">
+                <Field label="Reset Token" error={resetError ?? undefined}>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Enter hex token"
+                    value={resetToken}
+                    onChange={(event) => setResetToken(event.target.value)}
+                    className={inputClassName()}
+                  />
+                </Field>
+                <Field label="New Password">
+                  <input
+                    type="password"
+                    required
+                    placeholder="••••••••"
+                    value={resetNewPassword}
+                    onChange={(event) => setResetNewPassword(event.target.value)}
+                    className={inputClassName()}
+                  />
+                </Field>
+                <Field label="Confirm Password">
+                  <input
+                    type="password"
+                    required
+                    placeholder="••••••••"
+                    value={resetConfirmPassword}
+                    onChange={(event) => setResetConfirmPassword(event.target.value)}
+                    className={inputClassName()}
+                  />
+                </Field>
+
+                {resetSuccess && <p className="text-xs text-emerald-400 font-semibold">{resetSuccess}</p>}
+
+                <button
+                  type="submit"
+                  disabled={resetSubmitting}
+                  className="h-11 w-full rounded-2xl bg-emerald-300 px-4 text-sm font-semibold text-emerald-950 transition hover:bg-emerald-200 disabled:opacity-60"
+                >
+                  {resetSubmitting ? "Resetting..." : "Reset Password"}
+                </button>
+                
+                <div className="flex justify-center mt-4">
+                  <button
+                    type="button"
+                    onClick={() => setLoginView("signin")}
+                    className="text-xs font-medium text-stone-400 hover:text-stone-300 transition outline-none"
+                  >
+                    ← Back to Sign In
+                  </button>
+                </div>
+              </form>
+            </>
+          )}
         </section>
       </main>
     );
@@ -274,6 +469,8 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+
       </main>
     );
   }

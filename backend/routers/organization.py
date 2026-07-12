@@ -211,8 +211,18 @@ def get_employees(
     current_user: Employee = Depends(get_current_user),
 ):
     employees = db.query(Employee).all()
+    role_priority = {
+        "admin": 1,
+        "asset_manager": 2,
+        "department_head": 3,
+        "employee": 4
+    }
+    sorted_employees = sorted(
+        employees,
+        key=lambda e: (role_priority.get(e.role, 99), e.name.lower() if e.name else "")
+    )
     response = []
-    for emp in employees:
+    for emp in sorted_employees:
         dept_name = db.get(Department, emp.department_id).name if emp.department_id else None
         response.append({
             "id": emp.id, "name": emp.name, "email": emp.email, "department_id": emp.department_id,
