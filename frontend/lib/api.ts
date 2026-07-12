@@ -1,4 +1,7 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API_BASE =
+  typeof window !== "undefined"
+    ? `http://${window.location.hostname}:8000`
+    : (process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000");
 
 type ApiError = { detail?: string | { msg: string }[] };
 

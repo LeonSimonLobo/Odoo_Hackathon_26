@@ -9,14 +9,15 @@ import {
   closeAuditCycle,
   getDepartments,
   getEmployees,
-  getMe,
   type AuditCycle,
   type AuditItem,
   type Department,
   type Employee,
   type User,
 } from "@/lib/api";
-import { Sidebar } from "../Sidebar";
+import { useAuth } from "@/lib/AuthContext";
+import { PageShell } from "@/components/PageShell";
+import { Button } from "@/components/ui/Button";
 
 const STATUS_STYLES: Record<string, string> = {
   verified: "border-emerald-400/50 text-emerald-300",
@@ -35,7 +36,7 @@ function inputCls(extra = "") {
 }
 
 export default function AuditPage() {
-  const [user, setUser] = useState<User | null>(null);
+  const { user } = useAuth();
   const [cycles, setCycles] = useState<AuditCycle[]>([]);
   const [selectedCycle, setSelectedCycle] = useState<AuditCycle | null>(null);
   const [items, setItems] = useState<AuditItem[]>([]);
@@ -60,7 +61,7 @@ export default function AuditPage() {
   const [closing, setClosing] = useState(false);
 
   useEffect(() => {
-    getMe().then(setUser).catch(() => setUser(null));
+    // Replaced local getMe with global auth
   }, []);
 
   const loadCycles = useCallback(async () => {
@@ -153,30 +154,19 @@ export default function AuditPage() {
   if (!user) return null;
 
   return (
-    <main className="flex min-h-screen bg-[#0f1110] text-stone-100 selection:bg-emerald-400/30 selection:text-emerald-300">
-      <Sidebar currentItem="Audit" />
-
-      <section className="flex-1 px-8 py-8 lg:px-12 lg:py-10 flex flex-col overflow-y-auto">
-        <header className="border-b border-stone-200/10 pb-5">
-            <div className="flex items-start justify-between">
-              <div>
-                <h1 className="text-3xl font-semibold tracking-tight text-stone-50">Asset Audit</h1>
-                <p className="mt-1 text-sm text-stone-400">
-                  Run structured verification cycles — mark assets verified, missing, or damaged.
-                </p>
-              </div>
-              {canManage && (
-                <button
-                  onClick={() => setShowCreate(v => !v)}
-                  className="rounded-full border border-emerald-400/40 bg-emerald-400/10 px-5 py-1.5 text-sm font-medium text-emerald-300 transition hover:bg-emerald-400/20"
-                >
-                  {showCreate ? "Cancel" : "+ New Cycle"}
-                </button>
-              )}
-            </div>
-          </header>
-
-          <div className="flex-1 overflow-auto p-5 lg:p-7 space-y-6">
+    <PageShell
+      currentItem="Audit"
+      title="Asset Audit"
+      subtitle="Run structured verification cycles — mark assets verified, missing, or damaged."
+      actions={
+        canManage ? (
+          <Button onClick={() => setShowCreate((v) => !v)}>
+            {showCreate ? "Cancel" : "+ New Cycle"}
+          </Button>
+        ) : null
+      }
+    >
+      <div className="flex-1 overflow-auto p-5 lg:p-7 space-y-6">
             {/* Create form */}
             {showCreate && (
               <section className="rounded-[1.5rem] border border-stone-200/10 bg-[#171b17] p-6 max-w-2xl">
@@ -371,8 +361,7 @@ export default function AuditPage() {
                 )}
               </div>
             )}
-          </div>
-        </section>
-      </main>
-    );
-  }
+      </div>
+    </PageShell>
+  );
+}

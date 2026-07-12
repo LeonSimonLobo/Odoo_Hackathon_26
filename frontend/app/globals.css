@@ -1,31 +1,36 @@
 @import "tailwindcss";
 
 :root {
-  --bg-app: #0f1115;
-  --bg-surface: #16191f;
-  --bg-elevated: #1c1f27;
-  --bg-input: #11141a;
+  --bg-app: #000000;
+  --bg-surface: #0a0b0a;
+  --bg-elevated: #111211;
+  --bg-input: #121312;
 
-  --primary: #4682b4;
-  --primary-light: #5c9fd0;
-  --primary-dark: #365f82;
+  --mathical-purple: #4c51e6;
+  --mathical-pink: #ec8fa9;
+  --mathical-sand: #f4ecd8;
+  --mathical-lime: #c5f82a;
+
+  --primary: #4c51e6;
+  --primary-light: #6e73ff;
+  --primary-dark: #373ab0;
   --primary-inverse: #ffffff;
 
-  --warning: #c2593a;
-  --warning-light: #d97a5e;
-  --success: #3a8c5d;
+  --warning: #ec8fa9;
+  --warning-light: #f7aabf;
+  --success: #c5f82a;
 
-  --border: #2a2f3a;
-  --border-subtle: #1e222b;
+  --border: #18191a;
+  --border-subtle: #0f100f;
 
-  --text-primary: #f5f4f0;
-  --text-secondary: #a1a7b3;
-  --text-muted: #6e7681;
-  --text-placeholder: #4e5561;
+  --text-primary: #ffffff;
+  --text-secondary: #f4ecd8;
+  --text-muted: #808388;
+  --text-placeholder: #505256;
 
-  --radius-sm: 0.5rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
+  --radius-sm: 0.75rem;
+  --radius-md: 1.25rem;
+  --radius-lg: 2rem;
 }
 
 @theme inline {
@@ -33,6 +38,11 @@
   --color-bg-surface: var(--bg-surface);
   --color-bg-elevated: var(--bg-elevated);
   --color-bg-input: var(--bg-input);
+
+  --color-mathical-purple: var(--mathical-purple);
+  --color-mathical-pink: var(--mathical-pink);
+  --color-mathical-sand: var(--mathical-sand);
+  --color-mathical-lime: var(--mathical-lime);
 
   --color-primary: var(--primary);
   --color-primary-light: var(--primary-light);
@@ -51,8 +61,8 @@
   --color-text-muted: var(--text-muted);
   --color-text-placeholder: var(--text-placeholder);
 
-  --font-sans: var(--font-lato);
-  --font-heading: var(--font-archivo);
+  --font-sans: var(--font-outfit);
+  --font-heading: var(--font-lexend);
   --font-mono: var(--font-geist-mono);
 }
 
