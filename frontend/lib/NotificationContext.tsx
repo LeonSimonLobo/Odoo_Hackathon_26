@@ -65,6 +65,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     if (!user) return;
 
     // Fetch initial list
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void fetchNotificationsList();
 
     // Determine WS URL
