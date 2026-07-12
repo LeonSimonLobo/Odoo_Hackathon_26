@@ -1,6 +1,7 @@
 import sys
 from datetime import datetime, date, timedelta
 from database import Base, engine, SessionLocal
+from security import hash_password
 from models import (
     Department, Employee, AssetCategory, Asset, AssetAllocation,
     TransferRequest, Resource, ResourceBooking, MaintenanceRequest,
@@ -36,8 +37,8 @@ def seed_database():
         session.flush()  # Generate IDs
 
         print("Seeding temporary employees (for circular reference resolution)...")
-        # Creating employees with dummy password hashes. In a real system, these would be properly hashed.
-        pwd_hash = "pbkdf2:sha256:600000$mock_hash_value"
+        # Default dev password for all seeded accounts.
+        pwd_hash = hash_password("password123")
         
         # 1. Admins & Asset Managers
         admin_alice = Employee(name="Alice Admin", email="alice@assetflow.com", password_hash=pwd_hash, role="admin")
