@@ -308,7 +308,14 @@ export default function Home() {
                   {resetSubmitting ? "Resetting..." : "Reset Password"}
                 </button>
                 
-                <div className="flex justify-center mt-4">
+                <div className="flex flex-col gap-2 mt-4 text-center">
+                  <button
+                    type="button"
+                    onClick={() => setLoginView("forgot")}
+                    className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition outline-none"
+                  >
+                    ← Back to Recover Password
+                  </button>
                   <button
                     type="button"
                     onClick={() => setLoginView("signin")}
