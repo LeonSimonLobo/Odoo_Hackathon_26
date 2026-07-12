@@ -128,16 +128,32 @@ export default function OrganizationPage() {
             <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-400">
               Manage departments, asset categories, and employee roles. Admin access required for most actions.
             </p>
-            <div className="mt-5 flex gap-4 border-b border-stone-200/10 pb-4">
-              {["departments", "categories", "employees"].map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab as "departments" | "categories" | "employees")}
-                  className={`capitalize ${activeTab === tab ? "font-semibold text-emerald-300" : "text-stone-400 hover:text-stone-300"}`}
-                >
-                  {tab}
-                </button>
-              ))}
+            <div className="mt-5 flex items-center justify-between border-b border-stone-200/10 pb-4">
+              <div className="flex items-center gap-3">
+                {[
+                  { id: "departments", label: "Departments" },
+                  { id: "categories", label: "Categories" },
+                  { id: "employees", label: "Employee" }
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id as "departments" | "categories" | "employees")}
+                    className={`rounded-full border px-5 py-1.5 text-sm font-medium transition ${
+                      activeTab === tab.id
+                        ? "border-emerald-400/40 bg-emerald-400/10 text-emerald-300"
+                        : "border-stone-200/20 text-stone-300 hover:border-stone-200/40 hover:bg-stone-200/5"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                className="rounded-full border border-emerald-400/40 bg-emerald-400/10 px-5 py-1.5 text-sm font-medium text-emerald-300 hover:bg-emerald-400/20 transition"
+              >
+                + Add
+              </button>
             </div>
           </header>
 
@@ -145,19 +161,47 @@ export default function OrganizationPage() {
             {loading ? (
               <p className="text-stone-400">Loading...</p>
             ) : activeTab === "departments" ? (
-              <div className="grid gap-6 md:grid-cols-2">
-                <section className="rounded-[1.5rem] border border-stone-200/10 bg-[#171b17] p-5">
-                  <h3 className="text-lg font-semibold text-stone-50">Departments</h3>
-                  <div className="mt-4 space-y-3">
-                    {departments.map((dept) => (
-                      <div key={dept.id} className="flex justify-between rounded-xl border border-stone-200/10 bg-stone-950/35 px-4 py-3 text-sm">
-                        <span>{dept.name}</span>
-                        <span className="text-stone-500">{dept.status}</span>
-                      </div>
-                    ))}
+              <div className="space-y-8">
+                <section className="rounded-[1.75rem] border border-stone-200/10 bg-stone-950/20 p-5">
+                  <div className="overflow-hidden rounded-[1.25rem] border border-stone-200/10 bg-[#171b17]">
+                    <div className="grid grid-cols-[1.5fr_1fr_1fr_1fr] gap-4 border-b border-stone-200/10 px-5 py-4 text-sm text-stone-300">
+                      <span>Department</span>
+                      <span>Head</span>
+                      <span>Parent Dept</span>
+                      <span>Status</span>
+                    </div>
+                    <div className="divide-y divide-stone-200/10">
+                      {departments.map((dept) => (
+                        <div key={dept.id} className="grid grid-cols-[1.5fr_1fr_1fr_1fr] items-center gap-4 px-5 py-4 text-sm text-stone-200">
+                          <span>{dept.name}</span>
+                          <span className="text-stone-300">{dept.department_head_name || "--"}</span>
+                          <span className="text-stone-300">{dept.parent_department_name || "--"}</span>
+                          <div>
+                            <span className={`inline-flex rounded-full border px-4 py-1 text-xs font-medium ${
+                              dept.status === 'active' 
+                                ? 'border-emerald-400/40 text-emerald-300'
+                                : 'border-stone-500/40 text-stone-400'
+                            }`}>
+                              {dept.status === 'active' ? 'Active' : 'Inactive'}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                      {departments.length === 0 && (
+                        <div className="px-5 py-8 text-center text-sm text-stone-500">
+                          No departments found.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="mt-6 border-t border-stone-200/10 pt-4">
+                    <p className="text-sm text-stone-400">
+                      Editing a department here also drives the picklist in Screen 4 & 5
+                    </p>
                   </div>
                 </section>
-                <section className="rounded-[1.5rem] border border-stone-200/10 bg-[#171b17] p-5">
+
+                <section className="rounded-[1.5rem] border border-stone-200/10 bg-[#171b17] p-5 max-w-xl">
                   <h3 className="text-lg font-semibold text-stone-50">Create Department</h3>
                   <form onSubmit={handleCreateDepartment} className="mt-4 space-y-4">
                     <label className="block text-sm text-stone-300">Name</label>
@@ -171,7 +215,7 @@ export default function OrganizationPage() {
                     <button
                       type="submit"
                       disabled={deptSubmitting}
-                      className="h-11 w-full rounded-2xl bg-emerald-300 px-4 text-sm font-semibold text-emerald-950 hover:bg-emerald-200"
+                      className="h-11 w-full rounded-2xl bg-emerald-300 px-4 text-sm font-semibold text-emerald-950 transition hover:bg-emerald-200 disabled:opacity-60"
                     >
                       {deptSubmitting ? "Creating..." : "Create"}
                     </button>

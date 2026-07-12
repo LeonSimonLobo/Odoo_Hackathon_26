@@ -44,9 +44,12 @@ export default function AllocationsPage() {
   const [checkoutSubmitting, setCheckoutSubmitting] = useState(false);
   const [checkoutSuccess, setCheckoutSuccess] = useState("");
   
+  const [selectedAssetDetail, setSelectedAssetDetail] = useState<{ allocation_history: Array<{ id: number, allocation_date: string, status: string, target: string, condition_check_in_notes: string | null }> } | null>(null);
+
   // Conflict / Transfer Flow State
   const [conflictMsg, setConflictMsg] = useState("");
   const [transferring, setTransferring] = useState(false);
+  const [transferReason, setTransferReason] = useState("");
 
   useEffect(() => {
     getMe().then(setUser).catch(() => setUser(null));
@@ -70,6 +73,18 @@ export default function AllocationsPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadData();
   }, [user, loadData]);
+
+  useEffect(() => {
+    if (selectedAssetId) {
+      fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/assets/${selectedAssetId}`, {credentials: "include"})
+        .then(res => res.json())
+        .then(data => setSelectedAssetDetail(data))
+        .catch(err => console.error(err));
+    } else {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSelectedAssetDetail(null);
+    }
+  }, [selectedAssetId]);
 
   async function handleCheckout(e: FormEvent) {
     e.preventDefault();
@@ -122,7 +137,7 @@ export default function AllocationsPage() {
         asset_id: Number(selectedAssetId),
         target_employee_id: allocType === "employee" ? Number(targetId) : undefined,
         target_department_id: allocType === "department" ? Number(targetId) : undefined,
-        comments: "Requested via conflict resolution flow",
+        comments: transferReason || "Requested via conflict resolution flow",
       });
       setCheckoutSuccess("Transfer request successfully submitted.");
       setConflictMsg("");
@@ -217,59 +232,106 @@ export default function AllocationsPage() {
                       </select>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block mb-2 text-sm text-stone-300">Allocate To</label>
-                        <select
-                          value={allocType}
-                          onChange={(e) => {
-                            setAllocType(e.target.value as "employee" | "department");
-                            setTargetId("");
-                          }}
-                          className={inputClassName()}
-                        >
-                          <option value="employee" className="bg-stone-950">Employee</option>
-                          <option value="department" className="bg-stone-950">Department</option>
-                        </select>
+                    {!conflictMsg ? (
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block mb-2 text-sm text-stone-300">Allocate To</label>
+                          <select
+                            value={allocType}
+                            onChange={(e) => {
+                              setAllocType(e.target.value as "employee" | "department");
+                              setTargetId("");
+                            }}
+                            className={inputClassName()}
+                          >
+                            <option value="employee" className="bg-stone-950">Employee</option>
+                            <option value="department" className="bg-stone-950">Department</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block mb-2 text-sm text-stone-300">Target</label>
+                          <select
+                            value={targetId}
+                            onChange={(e) => setTargetId(e.target.value)}
+                            className={inputClassName()}
+                          >
+                            <option value="" className="bg-stone-950">Select target...</option>
+                            {allocType === "employee"
+                              ? employees.map(emp => <option key={emp.id} value={emp.id} className="bg-stone-950">{emp.name}</option>)
+                              : departments.map(dept => <option key={dept.id} value={dept.id} className="bg-stone-950">{dept.name}</option>)
+                            }
+                          </select>
+                        </div>
                       </div>
-                      <div>
-                        <label className="block mb-2 text-sm text-stone-300">Target</label>
-                        <select
-                          value={targetId}
-                          onChange={(e) => setTargetId(e.target.value)}
-                          className={inputClassName()}
-                        >
-                          <option value="" className="bg-stone-950">Select target...</option>
-                          {allocType === "employee"
-                            ? employees.map(emp => <option key={emp.id} value={emp.id} className="bg-stone-950">{emp.name}</option>)
-                            : departments.map(dept => <option key={dept.id} value={dept.id} className="bg-stone-950">{dept.name}</option>)
-                          }
-                        </select>
-                      </div>
-                    </div>
+                    ) : null}
 
-                    <div>
-                      <label className="block mb-2 text-sm text-stone-300">Expected Return Date (Optional)</label>
-                      <input
-                        type="date"
-                        value={returnDate}
-                        onChange={(e) => setReturnDate(e.target.value)}
-                        className={inputClassName()}
-                      />
-                    </div>
+                    {!conflictMsg ? (
+                      <div>
+                        <label className="block mb-2 text-sm text-stone-300">Expected Return Date (Optional)</label>
+                        <input
+                          type="date"
+                          value={returnDate}
+                          onChange={(e) => setReturnDate(e.target.value)}
+                          className={inputClassName()}
+                        />
+                      </div>
+                    ) : null}
 
                     {checkoutError && <p className="text-sm text-rose-300">{checkoutError}</p>}
 
                     {conflictMsg && (
-                      <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-4">
-                        <p className="text-sm text-amber-200">{conflictMsg}</p>
+                      <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-4">
+                        <p className="text-sm text-rose-300">
+                          {conflictMsg.replace("Conflict: Asset " + selectedAssetId, "").replace("is already allocated. Currently held by", "Already Allocated to").replace(".", "")}
+                          <br /> Direct re-allocation is blocked - submit a transfer request below
+                        </p>
+                      </div>
+                    )}
+
+                    {conflictMsg && (
+                      <div className="space-y-4">
+                        <h4 className="text-sm font-medium text-stone-200">Transfer Request</h4>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block mb-2 text-sm text-stone-300">From</label>
+                            <input
+                              value={conflictMsg.split("Currently held by ")[1]?.replace(".", "") || ""}
+                              disabled
+                              className="h-11 w-full rounded-xl border border-stone-200/10 bg-stone-900/50 px-4 text-sm text-stone-400 outline-none"
+                            />
+                          </div>
+                          <div>
+                            <label className="block mb-2 text-sm text-stone-300">To</label>
+                            <select
+                              value={targetId}
+                              onChange={(e) => {
+                                setAllocType("employee");
+                                setTargetId(e.target.value);
+                              }}
+                              className={inputClassName()}
+                            >
+                              <option value="" className="bg-stone-950">Select Employee...</option>
+                              {employees.map(emp => <option key={emp.id} value={emp.id} className="bg-stone-950">{emp.name}</option>)}
+                            </select>
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block mb-2 text-sm text-stone-300">Reason</label>
+                          <textarea
+                            rows={3}
+                            value={transferReason}
+                            onChange={(e) => setTransferReason(e.target.value)}
+                            className="w-full rounded-2xl border border-stone-200/15 bg-stone-950/45 p-4 text-sm text-stone-100 outline-none placeholder:text-stone-500 focus:border-emerald-300/50 resize-none"
+                            placeholder="Enter transfer reason..."
+                          />
+                        </div>
                         <button
                           type="button"
                           onClick={handleRequestTransfer}
                           disabled={transferring}
-                          className="mt-3 rounded-lg bg-amber-500/20 px-4 py-2 text-sm font-medium text-amber-300 hover:bg-amber-500/30"
+                          className="h-9 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-5 text-sm font-medium text-emerald-300 transition hover:bg-emerald-500/20 disabled:opacity-60"
                         >
-                          {transferring ? "Requesting Transfer..." : "Initiate Transfer Request"}
+                          {transferring ? "Submitting..." : "Submit Request"}
                         </button>
                       </div>
                     )}
@@ -285,6 +347,22 @@ export default function AllocationsPage() {
                     )}
                   </form>
                 </section>
+
+                {selectedAssetDetail?.allocation_history && selectedAssetDetail.allocation_history.length > 0 && (
+                  <section className="mt-8 border-t border-stone-200/10 pt-6">
+                    <h3 className="text-sm font-semibold text-stone-50 mb-4">Allocation history</h3>
+                    <ul className="space-y-3">
+                      {selectedAssetDetail.allocation_history.map((hist) => (
+                        <li key={hist.id} className="text-sm text-stone-300">
+                          {new Date(hist.allocation_date).toLocaleDateString("en-US", { month: "short", day: "numeric" })} - 
+                          {hist.status === "active" ? " Allocated to " : " Returned by "}
+                          {hist.target}
+                          {hist.condition_check_in_notes ? ` - condition: ${hist.condition_check_in_notes}` : ""}
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                )}
               </div>
             ) : (
               <div className="space-y-4">
