@@ -8,6 +8,7 @@ import {
   updateEmployeeRole,
   getCategories,
   createCategory,
+  createEmployee,
   type Department,
   type Employee,
   type Category,
@@ -45,6 +46,15 @@ export default function OrganizationPage() {
   const [catDesc, setCatDesc] = useState("");
   const [catError, setCatError] = useState("");
   const [catSubmitting, setCatSubmitting] = useState(false);
+
+  // Employee Form
+  const [empName, setEmpName] = useState("");
+  const [empEmail, setEmpEmail] = useState("");
+  const [empPassword, setEmpPassword] = useState("");
+  const [empRole, setEmpRole] = useState("employee");
+  const [empDeptId, setEmpDeptId] = useState("");
+  const [empError, setEmpError] = useState("");
+  const [empSubmitting, setEmpSubmitting] = useState(false);
 
   useEffect(() => {
     getMe()
@@ -116,6 +126,33 @@ export default function OrganizationPage() {
     } catch (err: unknown) {
       const error = err as Error;
       alert(error.message || "Failed to update role");
+    }
+  }
+
+  async function handleCreateEmployee(e: FormEvent) {
+    e.preventDefault();
+    setEmpSubmitting(true);
+    setEmpError("");
+    try {
+      await createEmployee({
+        name: empName,
+        email: empEmail,
+        password: empPassword,
+        role: empRole,
+        department_id: empDeptId ? Number(empDeptId) : null,
+      });
+      setEmpName("");
+      setEmpEmail("");
+      setEmpPassword("");
+      setEmpRole("employee");
+      setEmpDeptId("");
+      alert("Employee registered successfully!");
+      setEmployees(await getEmployees());
+    } catch (err: unknown) {
+      const error = err as Error;
+      setEmpError(error.message || "Failed to register employee");
+    } finally {
+      setEmpSubmitting(false);
     }
   }
 
@@ -303,21 +340,83 @@ export default function OrganizationPage() {
                 </section>
               </div>
             ) : (
-              <section className="rounded-[1.5rem] border border-stone-200/10 bg-[#171b17]">
-                <div className="grid grid-cols-[1fr_1fr_1fr] gap-4 border-b border-stone-200/10 px-5 py-4 text-sm font-medium text-stone-300">
-                  <span>Name</span>
-                  <span>Email</span>
-                  <span>Role</span>
-                </div>
-                <div className="divide-y divide-stone-200/10">
-                  {employees.map((emp) => (
-                    <div key={emp.id} className="grid grid-cols-[1fr_1fr_1fr] items-center gap-4 px-5 py-4 text-sm">
-                      <span className="text-stone-200">{emp.name}</span>
-                      <span className="text-stone-400">{emp.email}</span>
+              <div className="grid gap-6 md:grid-cols-2">
+                {/* Employee Directory Column */}
+                <section className="rounded-[1.5rem] border border-stone-200/10 bg-[#171b17] p-5">
+                  <h3 className="text-lg font-semibold text-stone-50 mb-4">Employee Directory</h3>
+                  
+                  <div className="rounded-xl border border-stone-200/10 overflow-hidden bg-stone-950/25">
+                    <div className="grid grid-cols-[1fr_1.1fr_1.1fr] gap-4 border-b border-stone-200/10 px-4 py-3 text-xs font-semibold uppercase tracking-wider text-stone-300">
+                      <span>Name</span>
+                      <span>Email</span>
+                      <span>Role</span>
+                    </div>
+                    <div className="divide-y divide-stone-200/10 max-h-[450px] overflow-y-auto">
+                      {employees.map((emp) => (
+                        <div key={emp.id} className="grid grid-cols-[1fr_1.1fr_1.1fr] items-center gap-4 px-4 py-3 text-sm">
+                          <div>
+                            <span className="text-stone-200 font-medium block truncate">{emp.name}</span>
+                            {emp.department_name && <span className="text-[10px] text-stone-500 font-semibold block uppercase tracking-wide mt-0.5">{emp.department_name}</span>}
+                          </div>
+                          <span className="text-stone-400 truncate">{emp.email}</span>
+                          <select
+                            value={emp.role}
+                            onChange={(e) => handleRoleChange(emp.id, e.target.value)}
+                            className="rounded-xl border border-stone-200/10 bg-stone-950 px-2.5 py-1.5 text-xs text-stone-300 outline-none"
+                          >
+                            <option value="employee">Employee</option>
+                            <option value="department_head">Department Head</option>
+                            <option value="asset_manager">Asset Manager</option>
+                            <option value="admin">Admin</option>
+                          </select>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </section>
+
+                {/* Add Employee Form Column */}
+                <section className="rounded-[1.5rem] border border-stone-200/10 bg-[#171b17] p-5">
+                  <h3 className="text-lg font-semibold text-stone-50">Register Employee</h3>
+                  <form onSubmit={handleCreateEmployee} className="mt-4 space-y-4">
+                    <div>
+                      <label className="block mb-2 text-sm text-stone-300">Full Name</label>
+                      <input
+                        value={empName}
+                        onChange={(e) => setEmpName(e.target.value)}
+                        required
+                        placeholder="John Doe"
+                        className={inputClassName()}
+                      />
+                    </div>
+                    <div>
+                      <label className="block mb-2 text-sm text-stone-300">Email (User ID)</label>
+                      <input
+                        type="email"
+                        value={empEmail}
+                        onChange={(e) => setEmpEmail(e.target.value)}
+                        required
+                        placeholder="john@assetflow.com"
+                        className={inputClassName()}
+                      />
+                    </div>
+                    <div>
+                      <label className="block mb-2 text-sm text-stone-300">Password</label>
+                      <input
+                        type="password"
+                        value={empPassword}
+                        onChange={(e) => setEmpPassword(e.target.value)}
+                        required
+                        placeholder="••••••••"
+                        className={inputClassName()}
+                      />
+                    </div>
+                    <div>
+                      <label className="block mb-2 text-sm text-stone-300">Role</label>
                       <select
-                        value={emp.role}
-                        onChange={(e) => handleRoleChange(emp.id, e.target.value)}
-                        className="rounded-xl border border-stone-200/10 bg-stone-950 px-3 py-2 text-stone-300 outline-none"
+                        value={empRole}
+                        onChange={(e) => setEmpRole(e.target.value)}
+                        className="h-11 w-full rounded-2xl border border-stone-200/15 bg-stone-950 px-4 text-sm text-stone-100 outline-none focus:border-emerald-300/50"
                       >
                         <option value="employee">Employee</option>
                         <option value="department_head">Department Head</option>
@@ -325,9 +424,32 @@ export default function OrganizationPage() {
                         <option value="admin">Admin</option>
                       </select>
                     </div>
-                  ))}
-                </div>
-              </section> 
+                    <div>
+                      <label className="block mb-2 text-sm text-stone-300">Department (Optional)</label>
+                      <select
+                        value={empDeptId}
+                        onChange={(e) => setEmpDeptId(e.target.value)}
+                        className="h-11 w-full rounded-2xl border border-stone-200/15 bg-stone-950 px-4 text-sm text-stone-100 outline-none focus:border-emerald-300/50"
+                      >
+                        <option value="">No Department Assigned</option>
+                        {departments.map((dept) => (
+                          <option key={dept.id} value={dept.id}>
+                            {dept.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    {empError && <p className="text-xs text-rose-300">{empError}</p>}
+                    <button
+                      type="submit"
+                      disabled={empSubmitting}
+                      className="h-11 w-full rounded-2xl bg-emerald-300 px-4 text-sm font-semibold text-emerald-950 hover:bg-emerald-200 transition disabled:opacity-60"
+                    >
+                      {empSubmitting ? "Registering..." : "Register Employee"}
+                    </button>
+                  </form>
+                </section>
+              </div>
             )}
           </div>
         </section>

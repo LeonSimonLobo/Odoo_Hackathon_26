@@ -299,6 +299,21 @@ export async function createCategory(payload: CategoryCreatePayload) {
   });
 }
 
+export type EmployeeCreatePayload = {
+  name: string;
+  email: string;
+  password: string;
+  role: string;
+  department_id?: number | null;
+};
+
+export async function createEmployee(payload: EmployeeCreatePayload) {
+  return apiFetch<Employee>("/api/employees", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
 export async function getEmployees() {
   return apiFetch<Employee[]>("/api/employees");
 }

@@ -37,7 +37,7 @@ def login(data: LoginRequest, response: Response, db: Session = Depends(get_db))
         raise HTTPException(status_code=403, detail="User account is deactivated")
 
     token = create_access_token({"user_id": user.id, "role": user.role})
-    response.set_cookie("token", token, httponly=True, samesite="lax")
+    response.set_cookie("token", token, httponly=False, samesite="lax")
     return {"user": EmployeeOut.model_validate(user)}
 
 @router.post("/forgot-password")
