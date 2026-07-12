@@ -255,19 +255,19 @@ export default function Home() {
                     title="Raise Maintenance Request"
                     description="Report a damaged or malfunctioning asset"
                     icon="🔧"
-                    href="#"
+                    href="/maintenance"
                   />
                   <ActionButton
                     title="Book Shared Resource"
                     description="Schedule rooms, vehicles, or equipment"
                     icon="📅"
-                    href="#"
+                    href="/bookings"
                   />
                   <ActionButton
                     title="Manage Audit Cycles"
                     description="Run discrepancy checks and verify assets"
                     icon="📝"
-                    href="#"
+                    href="/audit"
                   />
                 </div>
               </section>
