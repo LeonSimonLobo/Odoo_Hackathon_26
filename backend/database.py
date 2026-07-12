@@ -5,8 +5,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Default to SQLite file inside the backend directory, but allow postgres/mysql config
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///assetflow.db")
+# Resolve absolute path to the backend directory to avoid CWD-dependent SQLite bugs
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DEFAULT_DB_PATH = os.path.join(BASE_DIR, "assetflow.db")
+
+DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{DEFAULT_DB_PATH}")
 
 engine = create_engine(
     DATABASE_URL,
