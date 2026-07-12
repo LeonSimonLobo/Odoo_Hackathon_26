@@ -1,14 +1,21 @@
+import asyncio
+from collections import defaultdict
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 from datetime import datetime
 from sqlalchemy.orm import Session
 
-from database import get_db
+from database import SessionLocal, get_db
 from models import Notification, ActivityLog, Employee
+from security import decode_access_token
 from deps import get_current_user
+from routers.common import set_notification_broadcaster
 
 router = APIRouter(prefix="/api", tags=["notifications"])
+
+connection_manager: dict[int, set[WebSocket]] = defaultdict(set)
+event_loop: asyncio.AbstractEventLoop | None = None
 
 class NotificationResponse(BaseModel):
     id: int
@@ -20,6 +27,95 @@ class NotificationResponse(BaseModel):
     created_at: datetime
     class Config:
         from_attributes = True
+
+
+def serialize_notification(notification: Notification) -> dict:
+    return {
+        "id": notification.id,
+        "employee_id": notification.employee_id,
+        "type": notification.type,
+        "title": notification.title,
+        "message": notification.message,
+        "is_read": notification.is_read,
+        "created_at": notification.created_at.isoformat(),
+    }
+
+
+def schedule_notification(notification: Notification):
+    if event_loop is None or event_loop.is_closed():
+        return
+    asyncio.run_coroutine_threadsafe(
+        broadcast_notification(notification.employee_id, serialize_notification(notification)),
+        event_loop,
+    )
+
+
+set_notification_broadcaster(schedule_notification)
+
+
+@router.on_event("startup")
+async def capture_loop():
+    global event_loop
+    event_loop = asyncio.get_running_loop()
+
+
+async def get_websocket_user(websocket: WebSocket, db: Session) -> Employee:
+    token = websocket.cookies.get("token")
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    payload = decode_access_token(token)
+    if not payload:
+        raise HTTPException(status_code=401, detail="Invalid or expired session")
+
+    user = db.query(Employee).filter(Employee.id == payload["user_id"]).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+    if user.status != "active":
+        raise HTTPException(status_code=401, detail="User account is deactivated")
+    return user
+
+
+async def broadcast_notification(employee_id: int, payload: dict):
+    sockets = list(connection_manager.get(employee_id, set()))
+    if not sockets:
+        return
+
+    stale_connections: list[WebSocket] = []
+    for socket in sockets:
+        try:
+            await socket.send_json(payload)
+        except Exception:
+            stale_connections.append(socket)
+
+    for socket in stale_connections:
+        connection_manager[employee_id].discard(socket)
+
+
+@router.websocket("/ws/notifications")
+async def notifications_socket(websocket: WebSocket):
+    db = SessionLocal()
+    try:
+        user = await get_websocket_user(websocket, db)
+    except HTTPException:
+        db.close()
+        await websocket.close(code=4401)
+        return
+
+    await websocket.accept()
+    connection_manager[user.id].add(websocket)
+
+    try:
+        await websocket.send_json({"type": "connected", "user_id": user.id})
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        pass
+    finally:
+        connection_manager[user.id].discard(websocket)
+        if not connection_manager[user.id]:
+                        connection_manager.pop(user.id, None)
+        db.close()
 
 
 @router.get("/notifications", response_model=List[NotificationResponse])

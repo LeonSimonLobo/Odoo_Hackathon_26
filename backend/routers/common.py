@@ -1,6 +1,15 @@
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Callable
 from sqlalchemy.orm import Session
 from models import ActivityLog, Notification
+
+NotificationBroadcaster = Callable[[Notification], None]
+
+_notification_broadcaster: NotificationBroadcaster | None = None
+
+
+def set_notification_broadcaster(broadcaster: NotificationBroadcaster | None):
+    global _notification_broadcaster
+    _notification_broadcaster = broadcaster
 
 def log_activity(db: Session, employee_id: Optional[int], action: str, details: Dict[str, Any]):
     log_entry = ActivityLog(employee_id=employee_id, action=action, details=details)
@@ -11,3 +20,9 @@ def create_notification(db: Session, employee_id: int, notif_type: str, title: s
     notif = Notification(employee_id=employee_id, type=notif_type, title=title, message=message)
     db.add(notif)
     db.commit()
+    db.refresh(notif)
+
+    if _notification_broadcaster is not None:
+        _notification_broadcaster(notif)
+
+    return notif
