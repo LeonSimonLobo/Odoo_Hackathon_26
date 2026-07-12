@@ -1,0 +1,31 @@
+# Node dependencies
+**/node_modules/
+**/.next/
+**/out/
+**/build/
+**/dist/
+
+# Python cache & virtual environment
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/.venv/
+**/venv/
+**/ENV/
+
+# Database files
+**/*.db
+**/*.db-journal
+**/*.sqlite
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# OS files
+.DS_Store
+Thumbs.db
