@@ -2,6 +2,30 @@ import Link from "next/link";
 import { useEffect, useState, type FormEvent } from "react";
 import { logout, getMe, changePassword, type User } from "@/lib/api";
 import { useNotifications } from "@/lib/NotificationContext";
+import {
+  LayoutDashboard,
+  Building2,
+  Package,
+  ArrowLeftRight,
+  Calendar,
+  Wrench,
+  ClipboardCheck,
+  FileText,
+  Bell,
+  LogOut,
+} from "lucide-react";
+
+const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  Dashboard: LayoutDashboard,
+  "Organization setup": Building2,
+  Assets: Package,
+  "Allocation & Transfer": ArrowLeftRight,
+  "Resource Booking": Calendar,
+  Maintenance: Wrench,
+  Audit: ClipboardCheck,
+  Reports: FileText,
+  Notifications: Bell,
+};
 
 const EyeOpen = () => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-stone-450 hover:text-stone-200 transition">
@@ -85,44 +109,53 @@ export function Sidebar({ currentItem }: { currentItem: string }) {
   }
 
   return (
-    <aside className="hidden w-[250px] shrink-0 border-r border-stone-200/10 bg-[#111411] px-5 py-6 lg:flex lg:flex-col">
-      <div>
-        <p className="text-3xl font-semibold tracking-tight text-stone-50">
+    <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-bg-surface lg:flex">
+      <div className="px-5 py-6">
+        <p className="font-heading text-2xl font-bold tracking-tight text-text-primary">
           AssetFlow
         </p>
-        <p className="mt-2 text-sm text-stone-400">
-          Central registry for inventory, lifecycle, and tracking.
+        <p className="mt-1.5 text-xs leading-relaxed text-text-muted">
+          Enterprise asset &amp; resource management
         </p>
       </div>
-      <nav className="mt-10 space-y-2 text-[15px] text-stone-300">
+
+      <nav className="flex-1 space-y-1 px-3">
         {items.map((item) => {
           const isCurrent = item.name === currentItem;
           const showBadge = item.name === "Notifications" && unreadCount > 0;
+          const Icon = ICONS[item.name];
+
           return (
             <Link
               key={item.name}
               href={item.href}
-              className={`flex items-center justify-between rounded-xl px-4 py-2.5 ${isCurrent ? "border border-emerald-400/45 bg-emerald-400/10 text-stone-50" : "text-stone-300/90 transition hover:bg-stone-100/5"}`}
+              className={`flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition ${
+                isCurrent
+                  ? "bg-primary/10 text-primary-light"
+                  : "text-text-secondary hover:bg-bg-elevated hover:text-text-primary"
+              }`}
             >
-              <span>{item.name}</span>
-              {showBadge && (
-                <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white shadow-sm animate-pulse">
+              <span className="flex items-center gap-3">
+                {Icon ? <Icon className="h-4 w-4" /> : null}
+                {item.name}
+              </span>
+              {showBadge ? (
+                <span className="flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-warning px-1.5 text-[10px] font-bold text-primary-inverse">
                   {unreadCount}
                 </span>
-              )}
+              ) : null}
             </Link>
           );
         })}
       </nav>
 
       {user && (
-        <>
-          <div className="flex-1" />
-          <div className="mt-auto pt-6 border-t border-stone-200/10 text-stone-300">
-            <p className="text-xs font-semibold text-stone-100 truncate">
+        <div className="border-t border-border p-4">
+          <div className="mb-3">
+            <p className="truncate text-sm font-medium text-text-primary">
               {user.name}
             </p>
-            <p className="text-[11px] text-stone-500 capitalize">
+            <p className="text-xs capitalize text-text-muted">
               {user.role.replace("_", " ")}
             </p>
             <button
@@ -149,7 +182,15 @@ export function Sidebar({ currentItem }: { currentItem: string }) {
               Sign out
             </button>
           </div>
-        </>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-border bg-bg-elevated text-xs font-medium text-text-secondary transition hover:border-warning/40 hover:text-warning"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+            Sign out
+          </button>
+        </div>
       )}
 
       {showPasswordModal && (
