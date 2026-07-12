@@ -12,9 +12,9 @@ export function Sidebar({ currentItem }: { currentItem: string }) {
   }, []);
 
   const items = [
-    { name: "Dashboard", href: "/dashboard" },
+    { name: "Dashboard", href: "/" },
     { name: "Organization setup", href: "/organization" },
-    { name: "Assets", href: "/" },
+    { name: "Assets", href: "/assets" },
     { name: "Allocation & Transfer", href: "/allocations" },
     { name: "Resource Booking", href: "#" },
     { name: "Maintenance", href: "#" },

@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 
 from database import get_db
-from models import Asset, AssetAllocation, AssetCategory, ResourceBooking, TransferRequest, MaintenanceRequest, Employee
+from models import Asset, AssetAllocation, AssetCategory, ResourceBooking, TransferRequest, MaintenanceRequest, Employee, Department
 from deps import get_current_user
 
 router = APIRouter(prefix="/api", tags=["analytics"])
@@ -48,3 +48,27 @@ def get_booking_heatmap(db: Session = Depends(get_db), current_user: Employee = 
         if bk.start_time.hour in hours_map:
             hours_map[bk.start_time.hour] += 1
     return [{"hour": f"{h:02d}:00", "booking_count": cnt} for h, cnt in hours_map.items()]
+
+@router.get("/analytics/overdue")
+def get_overdue_allocations(db: Session = Depends(get_db), current_user: Employee = Depends(get_current_user)):
+    now_time = datetime.utcnow()
+    overdue = db.query(AssetAllocation).filter(
+        AssetAllocation.status == "active",
+        AssetAllocation.expected_return_date < now_time
+    ).all()
+    
+    response = []
+    for al in overdue:
+        asset = db.get(Asset, al.asset_id)
+        emp = db.get(Employee, al.allocated_employee_id) if al.allocated_employee_id else None
+        dept = db.get(Department, al.allocated_department_id) if al.allocated_department_id else None
+        response.append({
+            "id": al.id,
+            "asset_id": al.asset_id,
+            "asset_tag": asset.asset_tag if asset else "Unknown",
+            "asset_name": asset.name if asset else "Unknown",
+            "allocated_to_type": al.allocated_to_type,
+            "target_name": emp.name if al.allocated_to_type == "employee" else (dept.name if dept else "Unknown"),
+            "expected_return_date": al.expected_return_date.isoformat(),
+        })
+    return response

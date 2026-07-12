@@ -157,6 +157,33 @@ export async function logout() {
   });
 }
 
+export type Kpis = {
+  assets_available: number;
+  assets_allocated: number;
+  maintenance_today: number;
+  active_bookings: number;
+  pending_transfers: number;
+  upcoming_returns: number;
+};
+
+export type OverdueAllocation = {
+  id: number;
+  asset_id: number;
+  asset_tag: string;
+  asset_name: string;
+  allocated_to_type: string;
+  target_name: string;
+  expected_return_date: string;
+};
+
+export async function getDashboardKpis() {
+  return apiFetch<Kpis>("/api/analytics/kpi");
+}
+
+export async function getOverdueAllocations() {
+  return apiFetch<OverdueAllocation[]>("/api/analytics/overdue");
+}
+
 export function formatStatus(status: string) {
   return status
     .split("_")
