@@ -43,7 +43,10 @@ def login(data: LoginRequest, response: Response, db: Session = Depends(get_db))
         raise HTTPException(status_code=403, detail="User account is deactivated")
 
     token = create_access_token({"user_id": user.id, "role": user.role})
-    response.set_cookie("token", token, httponly=False, samesite="lax")
+    ENV = os.getenv("ENV_MODE", "development")
+    samesite = "none" if ENV == "production" else "lax"
+    secure = True if ENV == "production" else False
+    response.set_cookie("token", token, httponly=False, samesite=samesite, secure=secure)
     return {"user": EmployeeOut.model_validate(user)}
 
 import smtplib
@@ -145,5 +148,8 @@ def me(current_user: Employee = Depends(get_current_user)):
 
 @router.post("/logout")
 def logout(response: Response):
-    response.delete_cookie("token", httponly=True, samesite="lax")
+    ENV = os.getenv("ENV_MODE", "development")
+    samesite = "none" if ENV == "production" else "lax"
+    secure = True if ENV == "production" else False
+    response.delete_cookie("token", httponly=True, samesite=samesite, secure=secure)
     return {"message": "Logged out successfully"}
