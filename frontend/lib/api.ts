@@ -351,12 +351,33 @@ export type ActivityLog = {
   created_at: string;
 };
 
+export type NotificationItem = {
+  id: number;
+  employee_id: number;
+  type: string;
+  title: string;
+  message: string;
+  is_read: boolean;
+  created_at: string;
+};
+
 export async function getDashboardKPIs() {
   return apiFetch<DashboardKPIs>("/api/analytics/kpi");
 }
 
 export async function getActivityLogs() {
   return apiFetch<ActivityLog[]>("/api/activity-logs");
+}
+
+export async function getNotifications() {
+  return apiFetch<NotificationItem[]>("/api/notifications");
+}
+
+export async function markNotificationRead(id: number) {
+  return apiFetch<NotificationItem>(`/api/notifications/${id}/read`, {
+    method: "PUT",
+    body: JSON.stringify({}),
+  });
 }
 
 // ─── Audit Cycles ─────────────────────────────────────────────────────────────

@@ -22,7 +22,7 @@ export function Sidebar({ currentItem }: { currentItem: string }) {
     { name: "Maintenance", href: "/maintenance" },
     { name: "Audit", href: "/audit" },
     { name: "Reports", href: "#" },
-    { name: "Notifications", href: "#" },
+    { name: "Notifications", href: "/notifications" },
   ];
 
   async function handleLogout() {
