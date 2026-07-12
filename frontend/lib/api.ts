@@ -298,3 +298,101 @@ export async function createTransferRequest(payload: TransferCreatePayload) {
   });
 }
 
+export type Resource = {
+  id: number;
+  name: string;
+  type: string;
+  asset_id: number | null;
+  description: string | null;
+  status: string;
+};
+
+export type Booking = {
+  id: number;
+  resource_id: number;
+  resource_name: string;
+  booked_by_employee_id: number;
+  booked_by_name: string;
+  start_time: string;
+  end_time: string;
+  status: string;
+  created_at: string;
+};
+
+export type BookingCreatePayload = {
+  resource_id: number;
+  start_time: string;
+  end_time: string;
+};
+
+export type MaintenanceRequest = {
+  id: number;
+  asset_id: number;
+  asset_tag: string;
+  asset_name: string;
+  raised_by_employee_id: number;
+  raised_by_name: string;
+  description: string;
+  priority: string;
+  photo_url: string | null;
+  status: string;
+  technician_name: string | null;
+  actioned_by_id: number | null;
+  resolution_notes: string | null;
+  created_at: string;
+};
+
+export type MaintenanceCreatePayload = {
+  asset_id: number;
+  description: string;
+  priority: string;
+  photo_url?: string;
+};
+
+export type MaintenanceStatusUpdatePayload = {
+  status: string;
+  technician_name?: string;
+  resolution_notes?: string;
+};
+
+export async function getResources() {
+  return apiFetch<Resource[]>("/api/resources");
+}
+
+export async function getBookings(resourceId?: number) {
+  const suffix = resourceId != null ? `?resource_id=${resourceId}` : "";
+  return apiFetch<Booking[]>(`/api/bookings${suffix}`);
+}
+
+export async function createBooking(payload: BookingCreatePayload) {
+  return apiFetch<Booking>("/api/bookings", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function cancelBooking(id: number) {
+  return apiFetch<Booking>(`/api/bookings/${id}/cancel`, {
+    method: "PUT",
+  });
+}
+
+export async function getMaintenanceRequests() {
+  return apiFetch<MaintenanceRequest[]>("/api/maintenance");
+}
+
+export async function createMaintenanceRequest(payload: MaintenanceCreatePayload) {
+  return apiFetch<MaintenanceRequest>("/api/maintenance", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateMaintenanceStatus(id: number, payload: MaintenanceStatusUpdatePayload) {
+  return apiFetch<MaintenanceRequest>(`/api/maintenance/${id}/status`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+}
+
+

@@ -32,17 +32,19 @@ class TestAssetFlowAPI(unittest.TestCase):
         db.commit()
 
         # Seed core records
+        from security import hash_password
+        real_hash = hash_password("password123")
         self.test_manager = Employee(
             name="Mark Manager",
             email="mark@assetflow.com",
-            password_hash="mock_hash",
+            password_hash=real_hash,
             role="admin",
             status="active"
         )
         self.test_emp = Employee(
             name="Bob Builder",
             email="bob@builder.com",
-            password_hash="mock_hash",
+            password_hash=real_hash,
             role="employee",
             status="active"
         )

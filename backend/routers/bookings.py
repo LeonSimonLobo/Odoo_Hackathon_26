@@ -30,6 +30,23 @@ class BookingResponse(BaseModel):
         from_attributes = True
 
 
+class ResourceResponse(BaseModel):
+    id: int
+    name: str
+    type: str
+    asset_id: Optional[int]
+    description: Optional[str]
+    status: str
+    class Config:
+        from_attributes = True
+
+
+@router.get("/resources", response_model=List[ResourceResponse])
+def get_resources(db: Session = Depends(get_db), current_user: Employee = Depends(get_current_user)):
+    return db.query(Resource).filter_by(status="active").all()
+
+
+
 @router.get("/bookings", response_model=List[BookingResponse])
 def get_bookings(resource_id: Optional[int] = Query(None), db: Session = Depends(get_db), current_user: Employee = Depends(get_current_user)):
     query = db.query(ResourceBooking)
