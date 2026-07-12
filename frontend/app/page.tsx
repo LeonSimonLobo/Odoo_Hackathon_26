@@ -22,7 +22,9 @@ const assetSchema = z.object({
   categoryId: z.number().int().positive("Select a category"),
   serialNumber: z.string().optional(),
   acquisitionDate: z.string().min(1, "Acquisition date is required"),
-  acquisitionCost: z.coerce.number().nonnegative("Cost must be zero or greater"),
+  acquisitionCost: z.coerce
+    .number()
+    .nonnegative("Cost must be zero or greater"),
   condition: z.enum(["new", "good", "fair", "poor"]),
   location: z.string().min(2, "Location is required"),
   photoUrl: z.string().optional(),
@@ -117,7 +119,9 @@ export default function Home() {
         setSelectedAsset(null);
       }
     } catch (error) {
-      setAssetsError(error instanceof Error ? error.message : "Failed to load assets");
+      setAssetsError(
+        error instanceof Error ? error.message : "Failed to load assets",
+      );
       setAssets([]);
       setSelectedAsset(null);
     } finally {
@@ -139,7 +143,9 @@ export default function Home() {
         setCategories(data);
         if (data.length > 0) {
           setForm((current) =>
-            current.categoryId ? current : { ...current, categoryId: data[0].id },
+            current.categoryId
+              ? current
+              : { ...current, categoryId: data[0].id },
           );
         }
       })
@@ -155,7 +161,9 @@ export default function Home() {
   }, [loadAssets, user]);
 
   const locationOptions = useMemo(() => {
-    const values = new Set(assets.map((asset) => asset.location).filter(Boolean));
+    const values = new Set(
+      assets.map((asset) => asset.location).filter(Boolean),
+    );
     return Array.from(values).sort();
   }, [assets]);
 
@@ -182,7 +190,10 @@ export default function Home() {
     }
   }
 
-  function updateField<K extends keyof AssetFormState>(field: K, value: AssetFormState[K]) {
+  function updateField<K extends keyof AssetFormState>(
+    field: K,
+    value: AssetFormState[K],
+  ) {
     setForm((current) => ({ ...current, [field]: value }));
   }
 
@@ -226,7 +237,8 @@ export default function Home() {
       setQuery(created.asset_tag);
     } catch (error) {
       setErrors({
-        submit: error instanceof Error ? error.message : "Failed to register asset",
+        submit:
+          error instanceof Error ? error.message : "Failed to register asset",
       });
     } finally {
       setSubmitting(false);
@@ -245,8 +257,12 @@ export default function Home() {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(48,82,62,0.35),_transparent_34%),linear-gradient(180deg,_#0f1110_0%,_#111412_100%)] px-4 py-6 text-stone-100">
         <section className="w-full max-w-md rounded-[2rem] border border-stone-200/15 bg-[#141714] p-8 shadow-[0_28px_90px_rgba(0,0,0,0.45)]">
-          <p className="text-sm uppercase tracking-[0.28em] text-emerald-300/80">AssetFlow</p>
-          <h1 className="mt-2 text-3xl font-semibold text-stone-50">Sign in to continue</h1>
+          <p className="text-sm uppercase tracking-[0.28em] text-emerald-300/80">
+            AssetFlow
+          </p>
+          <h1 className="mt-2 text-3xl font-semibold text-stone-50">
+            Sign in to continue
+          </h1>
           <p className="mt-2 text-sm text-stone-400">
             Asset registry requires authentication. Use a seeded account such as{" "}
             <span className="text-stone-200">mark@assetflow.com</span> /{" "}
@@ -288,8 +304,12 @@ export default function Home() {
       <section className="mx-auto flex min-h-[calc(100vh-3rem)] max-w-[1180px] overflow-hidden rounded-[2rem] border border-stone-200/60 bg-[#141714] shadow-[0_28px_90px_rgba(0,0,0,0.45)]">
         <aside className="hidden w-[250px] shrink-0 border-r border-stone-200/10 bg-[#111411] px-5 py-6 lg:flex lg:flex-col">
           <div>
-            <p className="text-3xl font-semibold tracking-tight text-stone-50">AssetFlow</p>
-            <p className="mt-2 text-sm text-stone-400">Central registry for inventory, lifecycle, and tracking.</p>
+            <p className="text-3xl font-semibold tracking-tight text-stone-50">
+              AssetFlow
+            </p>
+            <p className="mt-2 text-sm text-stone-400">
+              Central registry for inventory, lifecycle, and tracking.
+            </p>
           </div>
           <nav className="mt-10 space-y-2 text-[15px] text-stone-300">
             {[
@@ -317,12 +337,16 @@ export default function Home() {
           <header className="border-b border-stone-200/10 px-5 py-5 sm:px-6 lg:px-7">
             <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
               <div>
-                <p className="text-sm uppercase tracking-[0.28em] text-emerald-300/80">Screen 4</p>
+                <p className="text-sm uppercase tracking-[0.28em] text-emerald-300/80">
+                  Screen 4
+                </p>
                 <h1 className="mt-2 text-3xl font-semibold tracking-tight text-stone-50">
                   Asset registrations and directory
                 </h1>
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-400">
-                  Register assets with auto-generated tags, search by tag or serial number, and track lifecycle status with allocation and maintenance history.
+                  Register assets with auto-generated tags, search by tag or
+                  serial number, and track lifecycle status with allocation and
+                  maintenance history.
                 </p>
                 <p className="mt-2 text-xs text-stone-500">
                   Signed in as {user.name} ({user.role.replace("_", " ")})
@@ -355,7 +379,11 @@ export default function Home() {
                   All categories
                 </option>
                 {categories.map((category) => (
-                  <option key={category.id} value={String(category.id)} className="bg-stone-950">
+                  <option
+                    key={category.id}
+                    value={String(category.id)}
+                    className="bg-stone-950"
+                  >
                     {category.name}
                   </option>
                 ))}
@@ -398,9 +426,13 @@ export default function Home() {
 
                 <div className="divide-y divide-stone-200/10">
                   {loadingAssets ? (
-                    <div className="px-5 py-8 text-sm text-stone-400">Loading assets...</div>
+                    <div className="px-5 py-8 text-sm text-stone-400">
+                      Loading assets...
+                    </div>
                   ) : assetsError ? (
-                    <div className="px-5 py-8 text-sm text-rose-300">{assetsError}</div>
+                    <div className="px-5 py-8 text-sm text-rose-300">
+                      {assetsError}
+                    </div>
                   ) : assets.length > 0 ? (
                     assets.map((asset) => (
                       <button
@@ -409,10 +441,16 @@ export default function Home() {
                         onClick={() => void handleSelectAsset(asset)}
                         className={`grid w-full grid-cols-[120px_1.1fr_0.95fr_0.9fr_0.95fr] gap-4 px-5 py-4 text-left text-sm transition hover:bg-stone-100/5 ${selectedAsset?.id === asset.id ? "bg-emerald-300/5" : ""}`}
                       >
-                        <span className="font-medium text-stone-100">{asset.asset_tag}</span>
+                        <span className="font-medium text-stone-100">
+                          {asset.asset_tag}
+                        </span>
                         <span className="text-stone-200">{asset.name}</span>
-                        <span className="text-stone-300">{asset.category_name ?? "—"}</span>
-                        <span className="text-stone-300">{formatStatus(asset.status)}</span>
+                        <span className="text-stone-300">
+                          {asset.category_name ?? "—"}
+                        </span>
+                        <span className="text-stone-300">
+                          {formatStatus(asset.status)}
+                        </span>
                         <span className="text-stone-300">{asset.location}</span>
                       </button>
                     ))
@@ -430,7 +468,9 @@ export default function Home() {
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <p className="text-sm text-stone-400">Selected asset</p>
-                        <h2 className="mt-1 text-2xl font-semibold text-stone-50">{selectedAsset.name}</h2>
+                        <h2 className="mt-1 text-2xl font-semibold text-stone-50">
+                          {selectedAsset.name}
+                        </h2>
                       </div>
                       <span className="rounded-full border border-emerald-300/35 bg-emerald-300/10 px-3 py-1 text-xs font-medium text-emerald-100">
                         {formatStatus(selectedAsset.status)}
@@ -438,25 +478,50 @@ export default function Home() {
                     </div>
 
                     <div className="mt-5 grid gap-3 text-sm text-stone-300 sm:grid-cols-2">
-                      <InfoPill label="Asset tag" value={selectedAsset.asset_tag} />
-                      <InfoPill label="Serial number" value={selectedAsset.serial_number ?? "—"} />
-                      <InfoPill label="Category" value={selectedAsset.category_name ?? "—"} />
-                      <InfoPill label="Condition" value={formatStatus(selectedAsset.condition)} />
-                      <InfoPill label="Location" value={selectedAsset.location} />
-                      <InfoPill label="Shared/bookable" value={selectedAsset.is_shared ? "Yes" : "No"} />
+                      <InfoPill
+                        label="Asset tag"
+                        value={selectedAsset.asset_tag}
+                      />
+                      <InfoPill
+                        label="Serial number"
+                        value={selectedAsset.serial_number ?? "—"}
+                      />
+                      <InfoPill
+                        label="Category"
+                        value={selectedAsset.category_name ?? "—"}
+                      />
+                      <InfoPill
+                        label="Condition"
+                        value={formatStatus(selectedAsset.condition)}
+                      />
+                      <InfoPill
+                        label="Location"
+                        value={selectedAsset.location}
+                      />
+                      <InfoPill
+                        label="Shared/bookable"
+                        value={selectedAsset.is_shared ? "Yes" : "No"}
+                      />
                       <InfoPill
                         label="Acquisition cost"
                         value={`₹${selectedAsset.acquisition_cost.toLocaleString("en-IN")}`}
                       />
-                      <InfoPill label="Acquired on" value={selectedAsset.acquisition_date} />
+                      <InfoPill
+                        label="Acquired on"
+                        value={selectedAsset.acquisition_date}
+                      />
                     </div>
                   </article>
 
                   <article className="rounded-[1.5rem] border border-stone-200/10 bg-[#161916] p-5">
-                    <h3 className="text-lg font-semibold text-stone-50">Lifecycle history</h3>
+                    <h3 className="text-lg font-semibold text-stone-50">
+                      Lifecycle history
+                    </h3>
                     <div className="mt-4 space-y-4 text-sm text-stone-300">
                       <div>
-                        <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Allocation history</p>
+                        <p className="text-xs uppercase tracking-[0.2em] text-stone-500">
+                          Allocation history
+                        </p>
                         <ul className="mt-2 space-y-2">
                           {selectedAsset.allocation_history.length > 0 ? (
                             selectedAsset.allocation_history.map((item) => (
@@ -464,8 +529,11 @@ export default function Home() {
                                 key={item.id}
                                 className="rounded-2xl border border-stone-200/10 bg-stone-950/35 px-3 py-2"
                               >
-                                {item.target ?? "Unknown"} · {formatStatus(item.status)} ·{" "}
-                                {new Date(item.allocation_date).toLocaleDateString()}
+                                {item.target ?? "Unknown"} ·{" "}
+                                {formatStatus(item.status)} ·{" "}
+                                {new Date(
+                                  item.allocation_date,
+                                ).toLocaleDateString()}
                               </li>
                             ))
                           ) : (
@@ -476,7 +544,9 @@ export default function Home() {
                         </ul>
                       </div>
                       <div>
-                        <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Maintenance history</p>
+                        <p className="text-xs uppercase tracking-[0.2em] text-stone-500">
+                          Maintenance history
+                        </p>
                         <ul className="mt-2 space-y-2">
                           {selectedAsset.maintenance_history.length > 0 ? (
                             selectedAsset.maintenance_history.map((item) => (
@@ -484,7 +554,8 @@ export default function Home() {
                                 key={item.id}
                                 className="rounded-2xl border border-stone-200/10 bg-stone-950/35 px-3 py-2"
                               >
-                                {item.description} · {formatStatus(item.status)} ·{" "}
+                                {item.description} · {formatStatus(item.status)}{" "}
+                                ·{" "}
                                 {new Date(item.created_at).toLocaleDateString()}
                               </li>
                             ))
@@ -495,9 +566,12 @@ export default function Home() {
                           )}
                         </ul>
                       </div>
-                      {(selectedAsset.photo_url || selectedAsset.document_url) && (
+                      {(selectedAsset.photo_url ||
+                        selectedAsset.document_url) && (
                         <div>
-                          <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Attachments</p>
+                          <p className="text-xs uppercase tracking-[0.2em] text-stone-500">
+                            Attachments
+                          </p>
                           <ul className="mt-2 space-y-2">
                             {selectedAsset.photo_url ? (
                               <li className="rounded-2xl border border-stone-200/10 bg-stone-950/35 px-3 py-2">
@@ -526,7 +600,9 @@ export default function Home() {
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="text-sm text-stone-400">Registration form</p>
-                    <h2 className="mt-1 text-2xl font-semibold text-stone-50">Register asset</h2>
+                    <h2 className="mt-1 text-2xl font-semibold text-stone-50">
+                      Register asset
+                    </h2>
                   </div>
                   <span className="rounded-full border border-stone-200/15 bg-stone-950/35 px-3 py-1 text-xs text-stone-300">
                     Tag auto-generated
@@ -542,7 +618,9 @@ export default function Home() {
                     <Field label="Name" error={errors.name}>
                       <input
                         value={form.name}
-                        onChange={(event) => updateField("name", event.target.value)}
+                        onChange={(event) =>
+                          updateField("name", event.target.value)
+                        }
                         className={inputClassName()}
                       />
                     </Field>
@@ -550,11 +628,17 @@ export default function Home() {
                     <Field label="Category" error={errors.categoryId}>
                       <select
                         value={form.categoryId || ""}
-                        onChange={(event) => updateField("categoryId", Number(event.target.value))}
+                        onChange={(event) =>
+                          updateField("categoryId", Number(event.target.value))
+                        }
                         className={inputClassName()}
                       >
                         {categories.map((category) => (
-                          <option key={category.id} value={category.id} className="bg-stone-950">
+                          <option
+                            key={category.id}
+                            value={category.id}
+                            className="bg-stone-950"
+                          >
                             {category.name}
                           </option>
                         ))}
@@ -564,26 +648,41 @@ export default function Home() {
                     <Field label="Serial number" error={errors.serialNumber}>
                       <input
                         value={form.serialNumber}
-                        onChange={(event) => updateField("serialNumber", event.target.value)}
+                        onChange={(event) =>
+                          updateField("serialNumber", event.target.value)
+                        }
                         className={inputClassName()}
                       />
                     </Field>
 
-                    <Field label="Acquisition date" error={errors.acquisitionDate}>
+                    <Field
+                      label="Acquisition date"
+                      error={errors.acquisitionDate}
+                    >
                       <input
                         type="date"
                         value={form.acquisitionDate}
-                        onChange={(event) => updateField("acquisitionDate", event.target.value)}
+                        onChange={(event) =>
+                          updateField("acquisitionDate", event.target.value)
+                        }
                         className={inputClassName()}
                       />
                     </Field>
 
-                    <Field label="Acquisition cost" error={errors.acquisitionCost}>
+                    <Field
+                      label="Acquisition cost"
+                      error={errors.acquisitionCost}
+                    >
                       <input
                         type="number"
                         min="0"
                         value={form.acquisitionCost}
-                        onChange={(event) => updateField("acquisitionCost", Number(event.target.value))}
+                        onChange={(event) =>
+                          updateField(
+                            "acquisitionCost",
+                            Number(event.target.value),
+                          )
+                        }
                         className={inputClassName()}
                       />
                     </Field>
@@ -592,12 +691,19 @@ export default function Home() {
                       <select
                         value={form.condition}
                         onChange={(event) =>
-                          updateField("condition", event.target.value as AssetFormState["condition"])
+                          updateField(
+                            "condition",
+                            event.target.value as AssetFormState["condition"],
+                          )
                         }
                         className={inputClassName()}
                       >
                         {CONDITIONS.map((condition) => (
-                          <option key={condition} value={condition} className="bg-stone-950">
+                          <option
+                            key={condition}
+                            value={condition}
+                            className="bg-stone-950"
+                          >
                             {formatStatus(condition)}
                           </option>
                         ))}
@@ -608,7 +714,9 @@ export default function Home() {
                       <input
                         list="location-options"
                         value={form.location}
-                        onChange={(event) => updateField("location", event.target.value)}
+                        onChange={(event) =>
+                          updateField("location", event.target.value)
+                        }
                         className={inputClassName()}
                       />
                       <datalist id="location-options">
@@ -621,16 +729,23 @@ export default function Home() {
                     <Field label="Photo URL (optional)" error={errors.photoUrl}>
                       <input
                         value={form.photoUrl}
-                        onChange={(event) => updateField("photoUrl", event.target.value)}
+                        onChange={(event) =>
+                          updateField("photoUrl", event.target.value)
+                        }
                         placeholder="https://..."
                         className={inputClassName()}
                       />
                     </Field>
 
-                    <Field label="Document URL (optional)" error={errors.documentUrl}>
+                    <Field
+                      label="Document URL (optional)"
+                      error={errors.documentUrl}
+                    >
                       <input
                         value={form.documentUrl}
-                        onChange={(event) => updateField("documentUrl", event.target.value)}
+                        onChange={(event) =>
+                          updateField("documentUrl", event.target.value)
+                        }
                         placeholder="https://..."
                         className={inputClassName()}
                       />
@@ -641,12 +756,16 @@ export default function Home() {
                       <input
                         type="checkbox"
                         checked={form.isShared}
-                        onChange={(event) => updateField("isShared", event.target.checked)}
+                        onChange={(event) =>
+                          updateField("isShared", event.target.checked)
+                        }
                         className="h-4 w-4 accent-emerald-300"
                       />
                     </label>
 
-                    {errors.submit ? <p className="text-sm text-rose-300">{errors.submit}</p> : null}
+                    {errors.submit ? (
+                      <p className="text-sm text-rose-300">{errors.submit}</p>
+                    ) : null}
 
                     <button
                       type="submit"
@@ -660,20 +779,31 @@ export default function Home() {
               </section>
 
               <section className="rounded-[1.75rem] border border-stone-200/10 bg-stone-950/20 p-5">
-                <h3 className="text-lg font-semibold text-stone-50">Registry summary</h3>
+                <h3 className="text-lg font-semibold text-stone-50">
+                  Registry summary
+                </h3>
                 <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-                  <SummaryCard label="Total assets" value={assets.length.toString()} />
+                  <SummaryCard
+                    label="Total assets"
+                    value={assets.length.toString()}
+                  />
                   <SummaryCard
                     label="Available"
-                    value={assets.filter((asset) => asset.status === "available").length.toString()}
+                    value={assets
+                      .filter((asset) => asset.status === "available")
+                      .length.toString()}
                   />
                   <SummaryCard
                     label="Allocated"
-                    value={assets.filter((asset) => asset.status === "allocated").length.toString()}
+                    value={assets
+                      .filter((asset) => asset.status === "allocated")
+                      .length.toString()}
                   />
                   <SummaryCard
                     label="Shared"
-                    value={assets.filter((asset) => asset.is_shared).length.toString()}
+                    value={assets
+                      .filter((asset) => asset.is_shared)
+                      .length.toString()}
                   />
                 </div>
               </section>
@@ -685,7 +815,15 @@ export default function Home() {
   );
 }
 
-function Field({ label, error, children }: { label: string; error?: string; children: ReactNode }) {
+function Field({
+  label,
+  error,
+  children,
+}: {
+  label: string;
+  error?: string;
+  children: ReactNode;
+}) {
   return (
     <label className="block space-y-2">
       <div className="flex items-center justify-between gap-3 text-sm text-stone-300">
@@ -700,7 +838,9 @@ function Field({ label, error, children }: { label: string; error?: string; chil
 function InfoPill({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="rounded-2xl border border-stone-200/10 bg-stone-950/35 px-4 py-3">
-      <p className="text-xs uppercase tracking-[0.2em] text-stone-500">{label}</p>
+      <p className="text-xs uppercase tracking-[0.2em] text-stone-500">
+        {label}
+      </p>
       <p className="mt-1 text-sm text-stone-100">{value}</p>
     </div>
   );
@@ -709,7 +849,9 @@ function InfoPill({ label, value }: { label: string; value: string | number }) {
 function SummaryCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-stone-200/10 bg-stone-950/35 px-4 py-3">
-      <p className="text-xs uppercase tracking-[0.18em] text-stone-500">{label}</p>
+      <p className="text-xs uppercase tracking-[0.18em] text-stone-500">
+        {label}
+      </p>
       <p className="mt-1 text-2xl font-semibold text-stone-50">{value}</p>
     </div>
   );
