@@ -197,12 +197,6 @@ export default function OrganizationPage() {
                   </button>
                 ))}
               </div>
-              <button
-                type="button"
-                className="rounded-full border border-emerald-400/40 bg-emerald-400/10 px-5 py-1.5 text-sm font-medium text-emerald-300 hover:bg-emerald-400/20 transition"
-              >
-                + Add
-              </button>
             </div>
 
           <div className="flex-1 overflow-auto p-5 lg:p-7">
